@@ -9,7 +9,7 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 #include "system/logging.h"
-// #include "drivers/display/spi_lcd_touch_example_main.c"
+#include "drivers/display/spi_lcd_touch_example_main.c"
 
 void boot_main(void) {
     // printf("Hello world 2!\n");
@@ -68,7 +68,7 @@ void boot_main(void) {
     
     LOG_INFO("Bootloader initialization complete\n");
 
-    // display_init();
+    display_init();
 
     for (int i = 10; i >= 0; i--) {
         LOG_INFO("Restarting in %d seconds...\n", i);

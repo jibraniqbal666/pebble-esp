@@ -19,6 +19,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "lvgl.h"
+#include "resources/pebble_logo.xbm"
 
 // #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
 // #include "esp_lcd_ili9341.h"
@@ -50,15 +51,10 @@ static const char *TAG = "example";
 #define EXAMPLE_PIN_NUM_BK_LIGHT       3
 #define EXAMPLE_PIN_NUM_TOUCH_CS       15
 
-// The pixel number in horizontal and vertical
-#if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
+
 #define EXAMPLE_LCD_H_RES              240
 #define EXAMPLE_LCD_V_RES              240
-#elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
-#define EXAMPLE_LCD_H_RES              240
-#define EXAMPLE_LCD_V_RES              240
-#endif
-// Bit number used to represent command and parameter
+
 #define EXAMPLE_LCD_CMD_BITS           8
 #define EXAMPLE_LCD_PARAM_BITS         8
 
@@ -72,7 +68,8 @@ static const char *TAG = "example";
 // LVGL library is not thread-safe, this example will call LVGL APIs from different tasks, so use a mutex to protect it
 static _lock_t lvgl_api_lock;
 
-extern void example_lvgl_demo_ui(lv_disp_t *disp);
+extern void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle);
+extern void render_on_display(esp_lcd_panel_handle_t panel_handle, int width, int height, uint16_t* buffer);
 
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
@@ -123,34 +120,6 @@ static void example_lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uin
     lv_draw_sw_rgb565_swap(px_map, (offsetx2 + 1 - offsetx1) * (offsety2 + 1 - offsety1));
     // copy a buffer's content to a specific area of the display
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, px_map);
-}
-
-// #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
-// static void example_lvgl_touch_cb(lv_indev_t * indev, lv_indev_data_t * data)
-// {
-//     uint16_t touchpad_x[1] = {0};
-//     uint16_t touchpad_y[1] = {0};
-//     uint8_t touchpad_cnt = 0;
-
-//     esp_lcd_touch_handle_t touch_pad = lv_indev_get_user_data(indev);
-//     esp_lcd_touch_read_data(touch_pad);
-//     /* Get coordinates */
-//     bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_pad, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
-
-//     if (touchpad_pressed && touchpad_cnt > 0) {
-//         data->point.x = touchpad_x[0];
-//         data->point.y = touchpad_y[0];
-//         data->state = LV_INDEV_STATE_PRESSED;
-//     } else {
-//         data->state = LV_INDEV_STATE_RELEASED;
-//     }
-// }
-// #endif
-
-static void example_increase_lvgl_tick(void *arg)
-{
-    /* Tell LVGL how many milliseconds has elapsed */
-    lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
 static void example_lvgl_port_task(void *arg)
@@ -208,20 +177,12 @@ void display_init(void)
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
         .bits_per_pixel = 16,
     };
-// #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
-//     ESP_LOGI(TAG, "Install ILI9341 panel driver");
-//     ESP_ERROR_CHECK(esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
-// #elif CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
+
     ESP_LOGI(TAG, "Install GC9A01 panel driver");
     ESP_ERROR_CHECK(esp_lcd_new_panel_gc9a01(io_handle, &panel_config, &panel_handle));
-// #endif
 
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-#if CONFIG_EXAMPLE_LCD_CONTROLLER_GC9A01
-    ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
-#endif
-    ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, true, false));
 
     // user can flush pre-defined pattern to the screen before we turn on the screen or backlight
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
@@ -251,16 +212,6 @@ void display_init(void)
     // set the callback which can copy the rendered image to an area of the display
     lv_display_set_flush_cb(display, example_lvgl_flush_cb);
 
-    ESP_LOGI(TAG, "Install LVGL tick timer");
-    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
-    const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &example_increase_lvgl_tick,
-        .name = "lvgl_tick"
-    };
-    esp_timer_handle_t lvgl_tick_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
-
     ESP_LOGI(TAG, "Register io panel event callback for LVGL flush ready notification");
     const esp_lcd_panel_io_callbacks_t cbs = {
         .on_color_trans_done = example_notify_lvgl_flush_ready,
@@ -268,65 +219,48 @@ void display_init(void)
     /* Register done callback */
     ESP_ERROR_CHECK(esp_lcd_panel_io_register_event_callbacks(io_handle, &cbs, display));
 
-// #if CONFIG_EXAMPLE_LCD_TOUCH_ENABLED
-//     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-//     esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
-//     // Attach the TOUCH to the SPI bus
-//     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &tp_io_config, &tp_io_handle));
-
-//     esp_lcd_touch_config_t tp_cfg = {
-//         .x_max = EXAMPLE_LCD_H_RES,
-//         .y_max = EXAMPLE_LCD_V_RES,
-//         .rst_gpio_num = -1,
-//         .int_gpio_num = -1,
-//         .flags = {
-//             .swap_xy = 0,
-//             .mirror_x = 0,
-//             .mirror_y = 0,
-//         },
-//     };
-//     esp_lcd_touch_handle_t tp = NULL;
-
-// #if CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
-//     ESP_LOGI(TAG, "Initialize touch controller STMPE610");
-//     ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
-// #endif // CONFIG_EXAMPLE_LCD_TOUCH_CONTROLLER_STMPE610
-
-//     static lv_indev_t *indev;
-//     indev = lv_indev_create();  // Input device driver (Touch)
-//     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
-//     lv_indev_set_display(indev, display);
-//     lv_indev_set_user_data(indev, tp);
-//     lv_indev_set_read_cb(indev, example_lvgl_touch_cb);
-// #endif
-
     ESP_LOGI(TAG, "Create LVGL task");
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
-    ESP_LOGI(TAG, "Display LVGL Meter Widget");
-    // Lock the mutex due to the LVGL APIs are not thread-safe
-    _lock_acquire(&lvgl_api_lock);
-    example_lvgl_demo_ui(display);
-    _lock_release(&lvgl_api_lock);
+    bootloader_show_logo(&panel_handle);
 }
 
-void example_lvgl_demo_ui(lv_display_t *disp)
+void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle)
 {
-    lv_obj_t *scr = lv_display_get_screen_active(disp);
+    // Convert XBM to RGB565 array
+    // Allocate buffer on heap instead of stack
+    size_t buffer_size = pebble_logo_width * pebble_logo_height * sizeof(uint16_t);
+    uint16_t *logo_buffer = malloc(buffer_size);
 
-    static lv_subject_t value;
-    lv_subject_init_int(&value, 30);
+    for (int y = 0; y < pebble_logo_height; y++) {
+        for (int x = 0; x < pebble_logo_width; x++) {
+            int byte_index = (y * ((pebble_logo_width + 7) / 8)) + (x / 8);
+            int bit_index = x % 8;
+            int pixel_index = y * pebble_logo_width + x;
 
-    lv_obj_t *arc = lv_arc_create(scr);
-    lv_obj_set_size(arc, 100, 100);
-    lv_obj_center(arc);
-    lv_arc_bind_value(arc, &value);
+            if (pebble_logo_bits[byte_index] & (1 << bit_index)) {
+                logo_buffer[pixel_index] = 0xFFFF; // White
+            } else {
+                logo_buffer[pixel_index] = 0x0000; // Black
+            }
+        }
+    }
 
-    lv_obj_set_style_arc_opa(arc, LV_OPA_50, LV_PART_MAIN);
-    lv_obj_set_style_arc_color(arc, lv_color_hex(0xffffff), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(arc, lv_color_hex(0xffffff), LV_PART_KNOB);
-    lv_obj_set_style_shadow_width(arc, 15, LV_PART_KNOB);
-    lv_obj_set_style_shadow_opa(arc, LV_OPA_40, LV_PART_KNOB);
-    lv_obj_set_style_shadow_offset_y(arc, 5, LV_PART_KNOB);
+    render_on_display(*panel_handle, pebble_logo_width, pebble_logo_height, logo_buffer);
+
+    free(logo_buffer);
 }
 
+void render_on_display(esp_lcd_panel_handle_t panel_handle, int width, int height, uint16_t* buffer)
+{
+    // Calculate center position on display
+    int start_x = (EXAMPLE_LCD_H_RES - width) / 2;
+    int start_y = (EXAMPLE_LCD_V_RES - height) / 2;
+
+    // Send to display hardware
+    esp_lcd_panel_draw_bitmap(panel_handle, 
+                             start_x, start_y,
+                             start_x + width, 
+                             start_y + height,
+                             buffer);
+}
