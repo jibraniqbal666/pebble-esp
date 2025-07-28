@@ -67,6 +67,7 @@ static const char *TAG = "example";
 
 // LVGL library is not thread-safe, this example will call LVGL APIs from different tasks, so use a mutex to protect it
 static _lock_t lvgl_api_lock;
+static esp_lcd_panel_handle_t panel_handle = NULL;
 
 extern void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle);
 extern void render_on_display(esp_lcd_panel_handle_t panel_handle, int width, int height, uint16_t* buffer);
@@ -111,7 +112,7 @@ static void example_lvgl_port_update_callback(lv_display_t *disp)
 static void example_lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     example_lvgl_port_update_callback(disp);
-    esp_lcd_panel_handle_t panel_handle = lv_display_get_user_data(disp);
+    panel_handle = lv_display_get_user_data(disp);
     int offsetx1 = area->x1;
     int offsetx2 = area->x2;
     int offsety1 = area->y1;
@@ -225,7 +226,7 @@ void display_init(void)
     bootloader_show_logo(&panel_handle);
 }
 
-void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle)
+void bootloader_show_logo()
 {
     // Convert XBM to RGB565 array
     // Allocate buffer on heap instead of stack
@@ -246,12 +247,12 @@ void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle)
         }
     }
 
-    render_on_display(*panel_handle, pebble_logo_width, pebble_logo_height, logo_buffer);
+    render_on_display(pebble_logo_width, pebble_logo_height, logo_buffer);
 
     free(logo_buffer);
 }
 
-void render_on_display(esp_lcd_panel_handle_t panel_handle, int width, int height, uint16_t* buffer)
+void render_on_display(int width, int height, uint16_t* buffer)
 {
     // Calculate center position on display
     int start_x = (EXAMPLE_LCD_H_RES - width) / 2;
