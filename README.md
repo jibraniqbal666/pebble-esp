@@ -153,6 +153,15 @@ Finally, you can debug with GDB using:
 
 ## ESP32 Run
 
+First time setup:
+
+```shell
+  pipenv --python 3.10     
+  pip install -r requirements.txt    
+```
+
+Then, to build and flash the ESP32 bootloader:
+
 ```shell
   cd platform/esp32v2/boot
   . ~/AndroidStudioProjects/pebble-next/esp-idf/export.sh
