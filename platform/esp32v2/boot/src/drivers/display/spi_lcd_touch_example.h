@@ -11,6 +11,6 @@
 #include "esp_log.h"
 #include "lvgl.h"
 
-esp_lcd_panel_handle_t display_init();
+void display_init();
 void bootloader_show_logo();
 void render_on_display(int width, int height, uint16_t* buffer);

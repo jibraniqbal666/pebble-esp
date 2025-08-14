@@ -1,6 +1,6 @@
 #include "drivers/gpio.h"
 #include "board/board.h"
-#include "drivers/display/spi_lc_touch_example.main.h"
+#include "drivers/display/spi_lcd_touch_example.h"
 #include "system/logging.h"
 #include <stdio.h>
 #include <inttypes.h>
@@ -18,10 +18,10 @@
 void boot_main(void) {
     LOG_INFO("ESP32-C3 Pebble Bootloader Starting\n");
     
-    esp_lcd_panel_handle_t panel_handle = display_init();
+    display_init();
     
     LOG_INFO("Displaying Pebble logo\n");
-    bootloader_show_logo(panel_handle);
+    bootloader_show_logo();
     vTaskDelay(3000 / portTICK_PERIOD_MS);
     
     #ifdef COMBINED_BOOT_FW  

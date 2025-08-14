@@ -81,7 +81,7 @@ def generate_phase_config(conf, phase, debug):
 def update_cmake_lists(conf, phase):
     """Update CMakeLists.txt based on phase"""
     
-    sources = ['hello_world_main.c']
+    sources = ['hello_world_main.c','../src/drivers/display/spi_lcd_touch_example.c']
     includes = ['.']
     
     # Phase 1: Kernel

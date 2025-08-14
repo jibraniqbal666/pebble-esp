@@ -20,7 +20,7 @@
 #include "esp_log.h"
 #include "lvgl.h"
 #include "resources/pebble_logo.xbm"
-#include "spi_lc_touch_example.main.h"
+#include "spi_lcd_touch_example.h"
 
 // #if CONFIG_EXAMPLE_LCD_CONTROLLER_ILI9341
 // #include "esp_lcd_ili9341.h"
@@ -70,8 +70,8 @@ static const char *TAG = "example";
 static _lock_t lvgl_api_lock;
 static esp_lcd_panel_handle_t panel_handle = NULL;
 
-extern void bootloader_show_logo(esp_lcd_panel_handle_t* panel_handle);
-extern void render_on_display(esp_lcd_panel_handle_t panel_handle, int width, int height, uint16_t* buffer);
+extern void bootloader_show_logo();
+extern void render_on_display(int width, int height, uint16_t* buffer);
 
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
@@ -139,7 +139,7 @@ static void example_lvgl_port_task(void *arg)
     }
 }
 
-esp_lcd_panel_handle_t* display_init()
+void display_init()
 {
     ESP_LOGI(TAG, "Turn off LCD backlight");
     gpio_config_t bk_gpio_config = {
@@ -224,7 +224,6 @@ esp_lcd_panel_handle_t* display_init()
     ESP_LOGI(TAG, "Create LVGL task");
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
-    return &panel_handle;
 }
 
 void bootloader_show_logo()
