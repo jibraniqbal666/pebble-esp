@@ -12,7 +12,7 @@
 #include "esp_system.h"
 
 #ifdef COMBINED_BOOT_FW
-#include "fw/kernel/esp32-c3/kernel_main.h"
+#include "fw/kernel/esp32-c3/kernel_main.c"
 #endif
 
 void boot_main(void) {

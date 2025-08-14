@@ -167,7 +167,7 @@ Then, to build and flash the ESP32 bootloader:
   . ~/AndroidStudioProjects/pebble-next/esp-idf/export.sh
   idf.py set-target esp32c3
   python waf configure --phase=1 --debug   
-   python waf build --flash             
+   python waf build --flash --monitor             
 ```
 
 Exit:

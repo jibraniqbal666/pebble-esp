@@ -108,6 +108,7 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     PEBBLE_ESP32_BUILD_PHASE=%d
     ESP32_C3=1
     PLATFORM_ESP32V2=1
+    COMBINED_BOOT_FW=1
 )
 ''' % (' '.join('"%s"' % s for s in sources), ' '.join('"%s"' % i for i in includes), phase, phase)
     
