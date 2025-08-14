@@ -150,3 +150,13 @@ Finally, you can debug with GDB using:
 ```shell
 ./waf qemu_gdb
 ```
+
+## ESP32 Run
+
+```shell
+  cd platform/esp32v2/boot
+  . ~/AndroidStudioProjects/pebble-next/esp-idf/export.sh
+  idf.py set-target esp32c3
+  python waf configure --phase=1 --debug   
+   python waf build --flash             
+```
