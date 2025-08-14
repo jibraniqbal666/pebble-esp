@@ -169,3 +169,7 @@ Then, to build and flash the ESP32 bootloader:
   python waf configure --phase=1 --debug   
    python waf build --flash             
 ```
+
+Exit:
+
+CTRL+T+X
