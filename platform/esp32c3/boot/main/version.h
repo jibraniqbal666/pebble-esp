@@ -1,0 +1,14 @@
+
+#pragma once
+
+#define PEBBLE_ESP32_VERSION_MAJOR 0
+#define PEBBLE_ESP32_VERSION_MINOR 1
+#define PEBBLE_ESP32_VERSION_PATCH 0
+#define PEBBLE_ESP32_BUILD_PHASE 1
+#define PEBBLE_ESP32_GIT_COMMIT "9745673"
+
+#define PEBBLE_ESP32_VERSION_STRING "0.1.0-phase1"
+
+// Phase-specific defines
+#define PHASE_1 1
+#define DEBUG 1
