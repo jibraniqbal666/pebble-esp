@@ -57,7 +57,7 @@ master_capability_set = {
 
 board_capability_dicts = [
     {
-        'boards': ['esp32'],
+        'boards': ['esp32_c3'],
         'capabilities': {
             'HAS_MAGNETOMETER'
         },

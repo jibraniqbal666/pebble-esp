@@ -178,12 +178,12 @@ int main(void) {
   // If we're on a snowy board using the stm32f4, we experience random hardfaults after leaving a
   // wfi instruction if we have mcu debugging enabled. For now, just turn off mcu debugging
   // entirely unless we explicitly want it. See PBL-10174
-  disable_mcu_debugging();
+  // disable_mcu_debugging();
 #else
   // Turn on MCU debugging at boot. This consumes some power so we'll turn it off after a short
   // time has passed (see prv_low_power_debug_config_callback) to allow us to connect after a
   // reset but not passively consume power after we've been running for a bit.
-  enable_mcu_debugging();
+ //  enable_mcu_debugging();
 #endif
 
   extern void * __ISR_VECTOR_TABLE__;  // Defined in linker script
@@ -284,14 +284,14 @@ static void init_drivers(void) {
 
   // The dbgserial input support requires timer support, so it is initialized here, much later
   // than the core dbgserial_init().
-  dbgserial_input_init();
+  // dbgserial_input_init();
 
-  serial_console_init();
+  // serial_console_init();
 
-  voltage_monitor_init();
+  // voltage_monitor_init();
 
-  battery_init();
-  vibe_init();
+  // battery_init();
+  // vibe_init();
 
 #if CAPABILITY_HAS_ACCESSORY_CONNECTOR
   accessory_init();
@@ -390,8 +390,8 @@ static NOINLINE void prv_main_task_init(void) {
   // The Snowy bootloader does not clear the watchdog flag itself. Clear the
   // flag ourselves so that a future safe reset does not look like a watchdog
   // reset to the bootloader.
-  static McuRebootReason s_mcu_reboot_reason;
-  s_mcu_reboot_reason = watchdog_clear_reset_flag();
+  // static McuRebootReason s_mcu_reboot_reason;
+  // s_mcu_reboot_reason = watchdog_clear_reset_flag();
 
 #if PULSE_EVERYWHERE
   pulse_init();

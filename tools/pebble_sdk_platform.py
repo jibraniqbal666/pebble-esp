@@ -103,6 +103,21 @@ emery_platform = {
              "compass", "200w", "228h"]
 }
 
+esp32_c3_platform = {
+    "NAME": "esp32_c3",
+    "MAX_APP_BINARY_SIZE": 0x10000,  # 64K
+    "MAX_APP_MEMORY_SIZE": 0x10000,  # 64K
+    "MAX_WORKER_MEMORY_SIZE": 0x2800,  # 10K
+    "MAX_RESOURCES_SIZE_APPSTORE": 0x40000,  # 256K
+    "MAX_RESOURCES_SIZE": 0x100000,  # 1024K
+    "MAX_FONT_GLYPH_SIZE": 256,
+    "DEFINES": ["PBL_PLATFORM_ESP32_C3",
+                "PBL_DISPLAY_WIDTH=240", "PBL_DISPLAY_HEIGHT=240"],
+    "BUILD_DIR": "esp32_c3",
+    "BUNDLE_BIN_DIR": "esp32_c3",
+    "ADDITIONAL_TEXT_LINES_FOR_PEBBLE_H": [],
+    "TAGS": ["esp32_c3"]
+}
 
 pebble_platforms = {
     "emery": emery_platform,
@@ -110,6 +125,7 @@ pebble_platforms = {
     "chalk": chalk_platform,
     "basalt": basalt_platform,
     "aplite": aplite_platform,
+    "esp32_c3": esp32_c3_platform,
 }
 
 

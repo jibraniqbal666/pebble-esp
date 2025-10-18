@@ -44,6 +44,10 @@ def is_asterix(ctx):
     return ctx.get_board().startswith('asterix')
 
 @conf
+def is_esp32_c3(ctx):
+    return ctx.get_board().startswith('esp32_c3')
+
+@conf
 def get_platform_name(ctx):
     if is_tintin(ctx):
         return "tintin"
@@ -59,6 +63,8 @@ def get_platform_name(ctx):
         return "robert"
     elif is_asterix(ctx):
         return "asterix"
+    elif is_esp32_c3(ctx):
+        return "esp32_c3"
     else:
         return "unknown"
 
@@ -143,6 +149,8 @@ def has_touch(ctx):
         return False
     elif is_asterix(ctx):
         return False
+    elif is_esp32_c3(ctx):
+        return False
     else:
         return None
 
@@ -189,6 +197,9 @@ def add_platform_defines(ctx, env):
     elif ctx.is_asterix():
         bit_depth = 1
         platform = 'SILK' # For now, Asterix-likes are actually Silk-like.
+    elif ctx.is_esp32_c3():
+        bit_depth = 1
+        platform = 'ESP32_C3'
     else:
         ctx.fatal('No platform specified for {}!'.format(ctx.options.board))
 

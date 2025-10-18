@@ -173,3 +173,6 @@ Then, to build and flash the ESP32 bootloader:
 Exit:
 
 CTRL+T+X
+
+
+

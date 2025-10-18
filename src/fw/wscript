@@ -71,6 +71,13 @@ def options(opt):
 
 def configure(conf):
     conf.load('binary_header')
+    
+    # Add ESP32 detection
+    if conf.env.MICRO_FAMILY == 'ESP32':
+        conf.env.append_value('DEFINES', ['ESP32_PLATFORM=1'])
+        if conf.env.BOARD.startswith('esp32_c3'):
+            conf.env.append_value('DEFINES', ['ESP32_C3=1'])
+    
     conf.recurse('vendor')
     conf.recurse('applib')
     conf.recurse('services')
@@ -97,6 +104,8 @@ def _generate_memory_layout(bld):
         ldscript_template = bld.path.find_node('stm32f2xx_flash_fw.ld.template')
     elif bld.is_asterix():
         ldscript_template = bld.path.find_node('nrf52840_flash_fw.ld.template')
+    elif bld.is_esp32():  # Add ESP32 support
+        ldscript_template = bld.path.find_node('esp32_flash_fw.ld.template')
 
     # Determine bootloader size so we can later calculate FLASH_LENGTH_*
     if bld.env.MICRO_FAMILY == 'STM32F2':
@@ -121,6 +130,12 @@ def _generate_memory_layout(bld):
     elif bld.env.MICRO_FAMILY == 'NRF52840':
         bootloader_size = '16K'
         flash_size = '1024K'
+    elif bld.env.MICRO_FAMILY == 'ESP32':  # Add ESP32 memory config
+        bootloader_size = '32K'  # ESP32 bootloader + partition table
+        if bld.is_esp32_c3():
+            flash_size = '4096K'  # ESP32-C3 typically has 4MB flash
+        else:
+            flash_size = '16384K'  # ESP32 can have up to 16MB flash
 
     if bld.env.QEMU:
         flash_size = '4M'
@@ -129,6 +144,8 @@ def _generate_memory_layout(bld):
         flash_origin = '0x00200000'
     elif bld.env.MICRO_FAMILY == 'NRF52840':
         flash_origin = '0x00000000'
+    elif bld.env.MICRO_FAMILY == 'ESP32':  # Add ESP32 flash origin
+        flash_origin = '0x00010000'  # ESP32 app starts after bootloader
     else:
         flash_origin = '0x08000000'
 
@@ -221,6 +238,16 @@ def _generate_memory_layout(bld):
         app_ram_size_4x = APP_RAM_SIZES['diorite']
         retained_size = 256
         total_ram = (0x20000000 + retained_size, 256 * 1024 - retained_size)
+    elif bld.is_esp32():  # Add ESP32 RAM configuration
+        app_ram_size_2x = APP_RAM_SIZES['aplite']
+        app_ram_size_3x = APP_RAM_SIZES['basalt'] 
+        app_ram_size_4x = APP_RAM_SIZES['diorite']
+        if bld.is_esp32_c3():
+            # ESP32-C3 has 400KB SRAM, use 320KB for apps (reserve 80KB for system)
+            total_ram = (0x3FC80000, 320 * 1024)
+        else:
+            # ESP32 has ~520KB usable SRAM, use 384KB for apps
+            total_ram = (0x3FFB0000, 384 * 1024)
     else:
         bld.fatal("No set of supported SDK platforms defined for this board")
 
@@ -287,14 +314,28 @@ def _generate_memory_layout(bld):
 def _link_firmware(bld, sources):
     if bld.is_spalding():
         sources += ['board/displays/display_spalding.c']
+    elif bld.is_esp32():  # Add ESP32-specific sources
+        sources += ['board/esp32/esp32_board.c']
+        if bld.is_esp32_c3():
+            sources += ['board/esp32/esp32_c3_specific.c']
 
-    fw_linkflags = ['-Wl,--cref',
-                    '-Wl,-Map=tintin_fw.map',
-                    '-Wl,--gc-sections',
-                    '-Wl,--undefined=uxTopUsedPriority',
-                    '-Wl,--build-id=sha1',
-                    '-Wl,--sort-section=alignment',
-                    '-nostdlib']
+    # ESP32 uses different linker flags
+    if bld.is_esp32():
+        fw_linkflags = ['-Wl,--cref',
+                        '-Wl,-Map=pebble_esp32.map',
+                        '-Wl,--gc-sections',
+                        '-Wl,--build-id=sha1',
+                        '-nostdlib',
+                        '-u', 'call_user_start_cpu0',  # ESP32 entry point
+                        '-Wl,--undefined=uxTopUsedPriority']
+    else:
+        fw_linkflags = ['-Wl,--cref',
+                        '-Wl,-Map=tintin_fw.map',
+                        '-Wl,--gc-sections',
+                        '-Wl,--undefined=uxTopUsedPriority',
+                        '-Wl,--build-id=sha1',
+                        '-Wl,--sort-section=alignment',
+                        '-nostdlib']
 
     fw_linkflags.extend(['-Wl,--wrap=malloc',
                          '-Wl,--undefined=__wrap_malloc',
@@ -305,25 +346,22 @@ def _link_firmware(bld, sources):
                          '-Wl,--wrap=free',
                          '-Wl,--undefined=__wrap_free'])
 
-    uses = ['applib',
-            'board',
-            'bt_driver',
-            'drivers',
-            'freertos',
-            'fw_services',
-            'gcc',
-            'proto_schemas',
-            'jerry_core',
-            'jerry_libm',
-            'libbtutil',
-            'libos',
-            'libutil',
-            'nanopb',
-            'pblibc',
-            'root_includes',
-            'startup',
-            'tinymt32',
-            'upng']
+    # ESP32 uses different libraries
+    if bld.is_esp32():
+        uses = ['applib',
+                'board',
+                'drivers', 
+                'freertos_esp32',  # ESP32-specific FreeRTOS
+                'fw_services',
+                'esp32_system',    # ESP32 system libraries
+                'libutil',
+                'nanopb',
+                'root_includes']
+    else:
+        uses = ['applib', 'board', 'bt_driver', 'drivers', 'freertos',
+                'fw_services', 'gcc', 'proto_schemas', 'jerry_core',
+                'jerry_libm', 'libbtutil', 'libos', 'libutil', 'nanopb',
+                'pblibc', 'root_includes', 'startup', 'tinymt32', 'upng']
 
     ldscript = _generate_memory_layout(bld)
 
@@ -385,6 +423,11 @@ def _get_mfg_paths(bld):
         return ('mfg/robert',)
     elif bld.is_asterix():
         return ('mfg/asterix',)
+    elif bld.is_esp32():  # Add ESP32 manufacturing support
+        if bld.is_esp32_c3():
+            return ('mfg/esp32_c3',)
+        else:
+            return ('mfg/esp32',)
     else:
         bld.fatal('No MFG configuration for board %s' % bld.env.BOARD)
 
@@ -393,6 +436,8 @@ def _get_dbg_paths(bld):
 
     if bld.is_tintin():
         return ('debug/legacy',)
+    elif bld.is_esp32():  # Add ESP32 debug support
+        return ('debug/esp32',)
     else:
         return ('debug/default',)
 
@@ -649,6 +694,8 @@ def build(bld):
         fw_includes_use.append('stm32_stdlib')
     elif bld.env.MICRO_FAMILY.startswith('NRF'):
         fw_includes_use.append('hal_nordic')
+    elif bld.env.MICRO_FAMILY.startswith('ESP32'):  # Add ESP32 includes
+        fw_includes_use.append('esp32_idf')
 
     bld(export_includes=['.',
                          'applib/vendor/uPNG',
@@ -688,7 +735,7 @@ def build(bld):
     bld.recurse('applib')
 
     # We can't use DMA until we root cause PBL-37278
-    if bld.is_silk():
+    if bld.is_silk() and not bld.is_esp32():
         bld.env.append_value('DEFINES', ['QSPI_DMA_DISABLE=1'])
 
     if bld.variant == 'prf':

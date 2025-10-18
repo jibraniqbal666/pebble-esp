@@ -99,6 +99,17 @@ elif board in ('asterix_evt1'):
             'drivers',
         ],
     )
+elif board in ('esp32_c3'):
+    bld.objects(
+        name='board',
+        source=[
+            'boards/board_esp32_c3.c',
+        ],
+        use=[
+            'fw_includes',
+            'drivers',
+        ],
+    )
 else:
     bld.fatal('src/fw/board/wscript_build: '
               'Unknown board {}'.format(board))
