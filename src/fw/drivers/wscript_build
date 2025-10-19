@@ -1,5 +1,5 @@
 mcu_family = bld.env.MICRO_FAMILY
-if mcu_family not in ('STM32F2', 'STM32F4', 'STM32F7', 'NRF52840'):
+if mcu_family not in ('STM32F2', 'STM32F4', 'STM32F7', 'NRF52840', 'ESP32_C3'):
     bld.fatal('src/fw/drivers/wscript: '
               'Unknown MICRO_FAMILY {}'.format(mcu_family))
 

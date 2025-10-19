@@ -73,7 +73,7 @@ def configure(conf):
     conf.load('binary_header')
     
     # Add ESP32 detection
-    if conf.env.MICRO_FAMILY == 'ESP32':
+    if conf.env.MICRO_FAMILY == 'ESP32_C3':
         conf.env.append_value('DEFINES', ['ESP32_PLATFORM=1'])
         if conf.env.BOARD.startswith('esp32_c3'):
             conf.env.append_value('DEFINES', ['ESP32_C3=1'])
@@ -130,7 +130,7 @@ def _generate_memory_layout(bld):
     elif bld.env.MICRO_FAMILY == 'NRF52840':
         bootloader_size = '16K'
         flash_size = '1024K'
-    elif bld.env.MICRO_FAMILY == 'ESP32':  # Add ESP32 memory config
+    elif bld.env.MICRO_FAMILY == 'ESP32_C3':  # Add ESP32 memory config
         bootloader_size = '32K'  # ESP32 bootloader + partition table
         if bld.is_esp32_c3():
             flash_size = '4096K'  # ESP32-C3 typically has 4MB flash
@@ -144,7 +144,7 @@ def _generate_memory_layout(bld):
         flash_origin = '0x00200000'
     elif bld.env.MICRO_FAMILY == 'NRF52840':
         flash_origin = '0x00000000'
-    elif bld.env.MICRO_FAMILY == 'ESP32':  # Add ESP32 flash origin
+    elif bld.env.MICRO_FAMILY == 'ESP32_C3':  # Add ESP32 flash origin
         flash_origin = '0x00010000'  # ESP32 app starts after bootloader
     else:
         flash_origin = '0x08000000'
@@ -311,31 +311,66 @@ def _generate_memory_layout(bld):
     return ldscript_result
 
 
+def _esp32_build(bld, sources):
+    """ESP32-specific build using ESP-IDF"""
+    import json
+    import tempfile
+    import os
+    
+    # Collect build information for ESP-IDF bridge
+    build_info = {
+        'sources': [str(s) for s in sources],
+        'includes': [
+            str(bld.path.get_src()),
+            str(bld.path.get_bld()),
+            'src/fw',
+            'src/fw/board',
+            'src/fw/drivers',
+        ],
+        'defines': bld.env.DEFINES
+    }
+    
+    # Write build info to temporary file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        json.dump(build_info, f, indent=2)
+        build_info_file = f.name
+    
+    try:
+        # Call ESP32 build bridge
+        bridge_script = os.path.join('tools', 'esp32_build_bridge.py')
+        
+        # Generate ESP-IDF component
+        bld.exec_command([
+            'python3', bridge_script, 'generate-component', build_info_file
+        ])
+        
+        # Build with ESP-IDF
+        board = "esp32c3" if bld.is_esp32_c3() else "esp32"
+        bld.exec_command([
+            'python3', bridge_script, 'build', board
+        ])
+        
+    finally:
+        # Clean up temporary file
+        if os.path.exists(build_info_file):
+            os.unlink(build_info_file)
+
 def _link_firmware(bld, sources):
+    if bld.is_esp32_c3():
+        # ESP32: Use ESP-IDF build system
+        return _esp32_build(bld, sources)
+        
     if bld.is_spalding():
         sources += ['board/displays/display_spalding.c']
-    elif bld.is_esp32():  # Add ESP32-specific sources
-        sources += ['board/esp32/esp32_board.c']
-        if bld.is_esp32_c3():
-            sources += ['board/esp32/esp32_c3_specific.c']
 
-    # ESP32 uses different linker flags
-    if bld.is_esp32():
-        fw_linkflags = ['-Wl,--cref',
-                        '-Wl,-Map=pebble_esp32.map',
-                        '-Wl,--gc-sections',
-                        '-Wl,--build-id=sha1',
-                        '-nostdlib',
-                        '-u', 'call_user_start_cpu0',  # ESP32 entry point
-                        '-Wl,--undefined=uxTopUsedPriority']
-    else:
-        fw_linkflags = ['-Wl,--cref',
-                        '-Wl,-Map=tintin_fw.map',
-                        '-Wl,--gc-sections',
-                        '-Wl,--undefined=uxTopUsedPriority',
-                        '-Wl,--build-id=sha1',
-                        '-Wl,--sort-section=alignment',
-                        '-nostdlib']
+    # Traditional ARM linker flags (non-ESP32)
+    fw_linkflags = ['-Wl,--cref',
+                    '-Wl,-Map=tintin_fw.map',
+                    '-Wl,--gc-sections',
+                    '-Wl,--undefined=uxTopUsedPriority',
+                    '-Wl,--build-id=sha1',
+                    '-Wl,--sort-section=alignment',
+                    '-nostdlib']
 
     fw_linkflags.extend(['-Wl,--wrap=malloc',
                          '-Wl,--undefined=__wrap_malloc',
@@ -423,11 +458,8 @@ def _get_mfg_paths(bld):
         return ('mfg/robert',)
     elif bld.is_asterix():
         return ('mfg/asterix',)
-    elif bld.is_esp32():  # Add ESP32 manufacturing support
-        if bld.is_esp32_c3():
-            return ('mfg/esp32_c3',)
-        else:
-            return ('mfg/esp32',)
+    elif bld.is_esp32_c3():  # Add ESP32 manufacturing support
+        return ('mfg/esp32_c3',)
     else:
         bld.fatal('No MFG configuration for board %s' % bld.env.BOARD)
 
@@ -436,8 +468,8 @@ def _get_dbg_paths(bld):
 
     if bld.is_tintin():
         return ('debug/legacy',)
-    elif bld.is_esp32():  # Add ESP32 debug support
-        return ('debug/esp32',)
+    elif bld.is_esp32_c3():  # Add ESP32 debug support
+        return ('debug/esp32_c3',)
     else:
         return ('debug/default',)
 
@@ -694,7 +726,7 @@ def build(bld):
         fw_includes_use.append('stm32_stdlib')
     elif bld.env.MICRO_FAMILY.startswith('NRF'):
         fw_includes_use.append('hal_nordic')
-    elif bld.env.MICRO_FAMILY.startswith('ESP32'):  # Add ESP32 includes
+    elif bld.env.MICRO_FAMILY.startswith('ESP32_C3'):  # Add ESP32 includes
         fw_includes_use.append('esp32_idf')
 
     bld(export_includes=['.',

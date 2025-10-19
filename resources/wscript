@@ -100,10 +100,10 @@ def build(bld):
     _set_prf_required_media_options(bld, resources_dict)
 
     resource_definitions = []
-    for r in resources_dict['media']:
-        defs = resource_generator.definitions_from_dict(bld, r, '')
+    # for r in resources_dict['media']:
+        # defs = resource_generator.definitions_from_dict(bld, r, '')
 
-        resource_definitions.extend(defs)
+        # resource_definitions.extend(defs)
 
     resource_declarations = []
     if 'files' in resources_dict:

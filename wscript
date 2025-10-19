@@ -476,7 +476,7 @@ def configure(conf):
     elif conf.is_asterix():
         conf.env.MICRO_FAMILY = 'NRF52840'
     elif conf.is_esp32_c3():
-        conf.env.MICRO_FAMILY = 'ESP32'
+        conf.env.MICRO_FAMILY = 'ESP32_C3'
     else:
         conf.fatal('No micro family specified for {}!'.format(conf.options.board))
 

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "platform/esp32v2/boot/src/drivers/display/spi_lc_touch_example.main.h"  // If you need this
+#include "platform/esp32c3/boot/src/drivers/display/spi_lc_touch_example.main.h"  // If you need this
 #include "../display.h"
 
 void display_init(void) { display_init(); }

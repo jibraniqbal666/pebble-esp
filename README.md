@@ -174,5 +174,9 @@ Exit:
 
 CTRL+T+X
 
+New Instructions:
+```shell
+ ./waf configure --board esp32_c3 --verbose --nowatchdog --nostop --nosleep --nojs   
+```
 
 
