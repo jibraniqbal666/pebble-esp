@@ -37,6 +37,8 @@ typedef enum PlatformType {
     #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeDiorite
   #elif PLATFORM_ROBERT || PLATFORM_CALCULUS
     #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeEmery
+  #elif PLATFORM_ESP32_C3
+    #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeEmery  // Use Emery-like for ESP32
   #else
     #error "PBL_PLATFORM_TYPE_CURRENT couldn't be determined: No PLATFORM_* defined!"
   #endif

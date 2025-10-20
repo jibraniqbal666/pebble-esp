@@ -73,6 +73,7 @@
 # include <stdbool.h>
 # include <stddef.h>
 # include "drivers/esp32/stubs/cmsis_stubs.h"
+# include "drivers/esp32/stubs/portmacro.h"
 #elif !defined(SDK) && !defined(UNITTEST)
 # error "Unknown or missing MICRO_FAMILY_* define"
 #endif
