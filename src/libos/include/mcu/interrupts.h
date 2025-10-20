@@ -30,6 +30,8 @@ bool mcu_state_are_interrupts_enabled(void);
 
 #ifdef __arm__
 #include "mcu/interrupts_arm.inl.h"
+#elif defined(MICRO_FAMILY_ESP32_C3)
+#include "mcu/interrupts_esp32.inl.h"
 #else
 #include "mcu/interrupts_stubs.inl.h"
 #endif

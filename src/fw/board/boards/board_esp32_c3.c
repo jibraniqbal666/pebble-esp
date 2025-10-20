@@ -1,3 +1,3 @@
-#include "board.h"
+#include "board/board.h"
 
 void board_init(void) {}

@@ -65,6 +65,14 @@
 #   undef HAD_UNUSED
 #  endif
 # pragma GCC diagnostic pop
+#elif defined(MICRO_FAMILY_ESP32_C3)
+# if !defined(ESP32_C3_COMPATIBLE) && !defined(CMSIS_COMPATIBLE)
+#  error "Source is incompatible with the target MCU"
+# endif
+# include <stdint.h>
+# include <stdbool.h>
+# include <stddef.h>
+# include "drivers/esp32/stubs/cmsis_stubs.h"
 #elif !defined(SDK) && !defined(UNITTEST)
 # error "Unknown or missing MICRO_FAMILY_* define"
 #endif
@@ -75,3 +83,4 @@
 #undef STM32F7_COMPATIBLE
 #undef NRF52840_COMPATIBLE
 #undef NRF5_COMPATIBLE
+#undef ESP32_C3_COMPATIBLE

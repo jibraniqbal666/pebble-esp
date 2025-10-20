@@ -36,8 +36,12 @@
 #include "task.h"
 
 DEFINE_SYSCALL(int, sys_test, int arg) {
+#ifdef MICRO_FAMILY_ESP32_C3
+  uint32_t ipsr = __get_IPSR();
+#else
   uint32_t ipsr;
   __asm volatile("mrs %0, ipsr" : "=r" (ipsr));
+#endif
 
   PBL_LOG(LOG_LEVEL_DEBUG, "Inside test kernel function! Privileged? %s Arg %u IPSR: %"PRIu32,
           bool_to_str(mcu_state_is_privileged()), arg, ipsr);
