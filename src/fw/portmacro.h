@@ -9,13 +9,19 @@
 #ifndef PORTMACRO_H_COMPATIBILITY
 #define PORTMACRO_H_COMPATIBILITY
 
-#if defined(MICRO_FAMILY_ESP32_C3)
+#if defined(MICRO_FAMILY_ESP32_C3) || defined(ESP32_PLATFORM) || defined(ESP32_C3)
     // ESP32: Use ESP-IDF's FreeRTOS portmacro.h
     #include "portmacro.h"
     
     // Additional compatibility definitions that might be needed
     #ifndef portTICK_PERIOD_MS
     #define portTICK_PERIOD_MS portTICK_RATE_MS
+    #endif
+    
+    // Ensure BaseType_t is defined for ESP32 builds
+    #ifndef BaseType_t
+    typedef int BaseType_t;
+    typedef unsigned int UBaseType_t;
     #endif
     
 #elif defined(MICRO_FAMILY_STM32F2) || defined(MICRO_FAMILY_STM32F4) || defined(MICRO_FAMILY_STM32F7)
