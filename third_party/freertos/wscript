@@ -33,7 +33,8 @@ def build(bld):
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp/platform/esp32c3/boot/build/config',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp/third_party/freertos/FreeRTOS-Kernel/FreeRTOS/Source/include',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/riscv/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_rom/include'
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_rom/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/register'
         ]
         
         bld(export_includes=esp32_freertos_includes,
