@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "portmacro.h"
+#include "FreeRTOS.h"
 
 #include <stdint.h>
 

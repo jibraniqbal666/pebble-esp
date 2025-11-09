@@ -28,7 +28,8 @@ def build(bld):
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/include',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/include',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include/freertos'
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include/freertos',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp/platform/esp32c3/boot/build/config'
         ]
         
         bld(export_includes=esp32_freertos_includes,
