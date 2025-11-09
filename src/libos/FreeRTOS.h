@@ -8,7 +8,9 @@
 #define LIBOS_FREERTOS_H_COMPATIBILITY
 
 #if defined(MICRO_FAMILY_ESP32_C3)
-    // ESP32: Use ESP-IDF's FreeRTOS
+    // ESP32: Use ESP-IDF's FreeRTOS with proper include order
+    #include "freertos/FreeRTOSConfig.h"
+    #include "freertos/portmacro.h"
     #include "freertos/FreeRTOS.h"
     
 #elif defined(MICRO_FAMILY_STM32F2) || defined(MICRO_FAMILY_STM32F4) || defined(MICRO_FAMILY_STM32F7) || defined(MICRO_FAMILY_NRF52840)

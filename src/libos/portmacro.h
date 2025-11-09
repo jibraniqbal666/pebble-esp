@@ -8,8 +8,9 @@
 #define LIBOS_PORTMACRO_H_COMPATIBILITY
 
 #if defined(MICRO_FAMILY_ESP32_C3)
-    // ESP32: Use ESP-IDF's FreeRTOS portmacro.h
-    #include "portmacro.h"
+    // ESP32: Use ESP-IDF's FreeRTOS with proper config first
+    #include "freertos/FreeRTOSConfig.h"
+    #include "freertos/portmacro.h"
     
 #elif defined(MICRO_FAMILY_STM32F2) || defined(MICRO_FAMILY_STM32F4) || defined(MICRO_FAMILY_STM32F7) || defined(MICRO_FAMILY_NRF52840)
     // ARM platforms: Include from third_party FreeRTOS
