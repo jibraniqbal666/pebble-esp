@@ -180,3 +180,10 @@ New Instructions:
 ```
 
 
+### ESP32 C3
+```shell
+source .env/bin/activate
+. ~/AndroidStudioProjects/pebble-next/esp-idf/export.sh
+./waf configure --board esp32_c3 --verbose --nowatchdog --nostop --nosleep --nojs
+./waf build
+```

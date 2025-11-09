@@ -326,6 +326,7 @@ def _esp32_build(bld, sources):
             'src/fw',
             'src/fw/board',
             'src/fw/drivers',
+            'src/libos',  # Add libos includes for ESP32
         ],
         'defines': bld.env.DEFINES
     }
@@ -389,6 +390,7 @@ def _link_firmware(bld, sources):
                 'freertos_esp32',  # ESP32-specific FreeRTOS
                 'fw_services',
                 'esp32_system',    # ESP32 system libraries
+                'libos',           # Include libos for ESP32
                 'libutil',
                 'nanopb',
                 'root_includes']

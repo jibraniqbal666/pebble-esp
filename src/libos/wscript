@@ -10,7 +10,10 @@ def build(bld):
                   target=target,
                   includes=['.', 'include'],
                   use=['pblibc_includes',
-                       'libutil_includes'] + platform_uses,
+                       'libutil_includes',
+                       'freertos_esp32',  # ESP32-specific FreeRTOS
+                        'esp32_system'
+                ] + platform_uses,
                   env=env.derive())
 
     bld(export_includes=['include'], name='libos_includes')
@@ -19,7 +22,13 @@ def build(bld):
         # Skip building sources for local builds, like unit tests.
         return
 
-    build_lib('libos', bld.env, ['fw_includes', 'freertos'])
+    # ESP32 uses self-contained stubs, ARM uses third_party FreeRTOS
+    if bld.env.MICRO_FAMILY == 'ESP32_C3':
+        platform_uses = ['fw_includes']  # ESP32: No external FreeRTOS dependency
+    else:
+        platform_uses = ['fw_includes', 'freertos']  # ARM: Use third_party FreeRTOS
+
+    build_lib('libos', bld.env, platform_uses)
 
 
 # vim:filetype=python
