@@ -16,20 +16,61 @@ def build(bld):
     elif bld.env.MICRO_FAMILY == 'ESP32_C3':
         # ESP32 uses ESP-IDF's FreeRTOS, not Pebble's ARM FreeRTOS
         # Define freertos_esp32 target to provide ESP-IDF FreeRTOS includes
+        # Comprehensive ESP-IDF include paths to resolve all FreeRTOS dependencies
+        esp_idf_base = '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf'
+        pebble_esp_base = '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp'
+        
         esp32_freertos_includes = [
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/FreeRTOS-Kernel/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/esp_additions/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_hw_support/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_system/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_common/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/hal/esp32c3/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/hal/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include/freertos',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp/platform/esp32c3/boot/build/config'
+            # Core FreeRTOS includes
+            f'{esp_idf_base}/components/freertos/FreeRTOS-Kernel/include',
+            f'{esp_idf_base}/components/freertos/FreeRTOS-Kernel/portable/riscv/include', 
+            f'{esp_idf_base}/components/freertos/esp_additions/include',
+            f'{esp_idf_base}/components/freertos/config/include',
+            f'{esp_idf_base}/components/freertos/config/include/freertos',
+            f'{esp_idf_base}/components/freertos/FreeRTOS-Kernel/portable/riscv/include/freertos',
+            
+            # ESP32 system components  
+            f'{esp_idf_base}/components/esp_system/include',
+            f'{esp_idf_base}/components/esp_common/include',
+            f'{esp_idf_base}/components/esp_hw_support/include',
+            f'{esp_idf_base}/components/esp_timer/include',
+            f'{esp_idf_base}/components/esp_event/include',
+            f'{esp_idf_base}/components/esp_netif/include',
+            f'{esp_idf_base}/components/esp_eth/include',
+            f'{esp_idf_base}/components/esp_wifi/include',
+            f'{esp_idf_base}/components/esp_phy/esp32c3/include',
+            f'{esp_idf_base}/components/esp_phy/include',
+            
+            # HAL and SOC
+            f'{esp_idf_base}/components/hal/esp32c3/include',
+            f'{esp_idf_base}/components/hal/include',  
+            f'{esp_idf_base}/components/hal/platform_port/include',
+            f'{esp_idf_base}/components/soc/esp32c3/include',
+            f'{esp_idf_base}/components/soc/include',
+            
+            # Low-level drivers
+            f'{esp_idf_base}/components/driver/include',
+            f'{esp_idf_base}/components/driver/esp32c3/include',
+            f'{esp_idf_base}/components/gpio/include',
+            f'{esp_idf_base}/components/spi_flash/include',
+            f'{esp_idf_base}/components/bootloader_support/include',
+            f'{esp_idf_base}/components/partition_table/include',
+            
+            # Utilities and support
+            f'{esp_idf_base}/components/log/include',
+            f'{esp_idf_base}/components/heap/include',  
+            f'{esp_idf_base}/components/newlib/platform_include',
+            f'{esp_idf_base}/components/pthread/include',
+            f'{esp_idf_base}/components/vfs/include',
+            f'{esp_idf_base}/components/nvs_flash/include',
+            
+            # Build configuration
+            f'{pebble_esp_base}/platform/esp32c3/boot/build/config',
+            f'{pebble_esp_base}/platform/esp32c3/boot/build/bootloader/config',
+            
+            # Additional arch-specific config paths
+            f'{esp_idf_base}/components/freertos/config/riscv/include',
+            f'{esp_idf_base}/components/freertos/config/esp32c3/include',
         ]
         
         bld(export_includes=esp32_freertos_includes,
