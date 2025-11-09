@@ -15,7 +15,28 @@ def build(bld):
         use_timers = True
     elif bld.env.MICRO_FAMILY == 'ESP32_C3':
         # ESP32 uses ESP-IDF's FreeRTOS, not Pebble's ARM FreeRTOS
-        # Skip building ARM FreeRTOS for ESP32
+        # Define freertos_esp32 target to provide ESP-IDF FreeRTOS includes
+        esp32_freertos_includes = [
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/FreeRTOS-Kernel/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/esp_additions/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_hw_support/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_system/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_common/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/hal/esp32c3/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/hal/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/freertos/config/include/freertos'
+        ]
+        
+        bld(export_includes=esp32_freertos_includes,
+            name='freertos_esp32')
+        
+        # Also create esp32_system target if it doesn't exist
+        bld(export_includes=esp32_freertos_includes,
+            name='esp32_system')
         return
     else:
         bld.fatal('Unrecognized env.MICRO_FAMILY value %r' %
