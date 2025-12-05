@@ -34,15 +34,25 @@ def build(bld):
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/pebble-esp/third_party/freertos/FreeRTOS-Kernel/FreeRTOS/Source/include',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/riscv/include',
             '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/esp_rom/include',
-            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/register'
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/soc/esp32c3/register',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/heap/include',
+            '/Users/jibraniqbal/AndroidStudioProjects/pebble-next/esp-idf/components/newlib/platform_include'
         ]
         
+        # Create all the expected FreeRTOS targets for ESP32
         bld(export_includes=esp32_freertos_includes,
             name='freertos_esp32')
         
-        # Also create esp32_system target if it doesn't exist
         bld(export_includes=esp32_freertos_includes,
             name='esp32_system')
+            
+        # Most importantly, create the standard 'freertos' target that other components expect
+        bld(export_includes=esp32_freertos_includes,
+            name='freertos')
+        
+        # Also create freertos_includes for compatibility
+        bld(export_includes=esp32_freertos_includes,
+            name='freertos_includes')
         return
     else:
         bld.fatal('Unrecognized env.MICRO_FAMILY value %r' %

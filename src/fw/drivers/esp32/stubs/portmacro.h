@@ -11,7 +11,8 @@
 #ifdef MICRO_FAMILY_ESP32_C3
 
 // Include ESP-IDF's FreeRTOS portmacro.h
-#include "portmacro.h"
+#include "freertos/FreeRTOSConfig.h"
+#include "freertos/portmacro.h"
 
 // Additional compatibility definitions that might be needed
 #ifndef portTICK_PERIOD_MS

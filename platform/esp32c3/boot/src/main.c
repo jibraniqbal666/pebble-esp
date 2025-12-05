@@ -1,7 +1,18 @@
-#include "drivers/gpio.h"
-#include "board/board.h"
-#include "drivers/display/spi_lcd_touch_example.h"
-#include "system/logging.h"
+#include "esp_log.h"
+#include "esp_system.h"
+
+// Simple logging macros for ESP32
+#define LOG_INFO(format, ...) ESP_LOGI("PEBBLE", format, ##__VA_ARGS__)
+#define LOG_DEBUG(format, ...) ESP_LOGD("PEBBLE", format, ##__VA_ARGS__)
+
+// Forward declarations and stub implementations for ESP32
+void display_init(void) {
+    LOG_INFO("Display init - ESP32 stub");
+}
+
+void bootloader_show_logo(void) {
+    LOG_INFO("Show Pebble logo - ESP32 stub");
+}
 #include <stdio.h>
 #include <inttypes.h>
 #include "sdkconfig.h"
@@ -12,7 +23,8 @@
 #include "esp_system.h"
 
 #ifdef COMBINED_BOOT_FW
-#include "fw/kernel/esp32-c3/kernel_main.c"
+// Forward declaration for pebble_os_start
+void pebble_os_start(void);
 #endif
 
 void boot_main(void) {

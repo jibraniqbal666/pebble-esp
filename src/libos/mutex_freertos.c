@@ -22,7 +22,6 @@
 
 #include "FreeRTOS.h"
 #include "light_mutex.h"
-#include "task.h"
 
 #include <string.h>
 

@@ -55,8 +55,10 @@ def options(opt):
     opt.load('pebble_arm_gcc', tooldir='waftools')
     opt.load('show_configure', tooldir='waftools')
     opt.recurse('applib-targets')
-    opt.recurse('tests')
-    opt.recurse('src/bluetooth-fw')
+    # opt.recurse('tests')  # Commented out - missing python dependencies  
+    # ESP32-C3: Skip Bluetooth options for ultra-minimal build 
+    # Note: We can't check MICRO_FAMILY here as it's not set yet in options
+    # opt.recurse('src/bluetooth-fw')  # Will be conditionally added in configure
     opt.recurse('src/fw')
     opt.recurse('src/idl')
     opt.recurse('sdk')
@@ -532,7 +534,9 @@ def configure(conf):
 
     _create_cm0_env(conf)
 
-    conf.recurse('src/bluetooth-fw')
+    # ESP32-C3: Skip Bluetooth configuration for ultra-minimal build
+    if conf.env.MICRO_FAMILY != 'ESP32_C3':
+        conf.recurse('src/bluetooth-fw')
 
     Logs.pprint('CYAN', 'Configuring arm_firmware environment')
     conf.setenv('', base_env)
@@ -758,8 +762,10 @@ def build(bld):
 
     bld.recurse('third_party')
     bld.recurse('src/include')
-    bld.recurse('src/libbtutil')
-    bld.recurse('src/bluetooth-fw')
+    # ESP32-C3: Skip Bluetooth for ultra-minimal build (menu and time only)
+    if bld.env.MICRO_FAMILY != 'ESP32_C3':
+        bld.recurse('src/libbtutil')
+        bld.recurse('src/bluetooth-fw')
     bld.recurse('src/libc')
     bld.recurse('src/libos')
     bld.recurse('src/libutil')

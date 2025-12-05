@@ -2,17 +2,21 @@ def configure(conf):
     pass
 
 def build(bld):
-    # Generate Pebble Protocol endpoints table:
-    bld.recurse('common/comm_session')
+    # Generate Pebble Protocol endpoints table (skip for ESP32_C3 ultra-minimal):
+    if bld.env.MICRO_FAMILY != 'ESP32_C3':
+        bld.recurse('common/comm_session')
 
     def _build_services(bld, sources):
         bld.gettext(source=sources, target='services.pot')
+        
+        # ESP32-C3: Ultra-minimal build doesn't use bluetooth
+        bt_dependencies = [] if bld.env.MICRO_FAMILY == 'ESP32_C3' else ['bt_driver']
+        
         bld.stlib(source=sources,
                   target='fw_services',
                   use=['fw_includes',
                        'freertos_includes',
-                       'bt_driver',
-                       'root_includes'])
+                       'root_includes'] + bt_dependencies)
 
     def _build_normal_recovery_services(bld):
         def _get_excludes(bld):
